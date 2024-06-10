@@ -1,6 +1,10 @@
-const express = require('express');
-const app = express();
-morgan = require('morgan');
+const express = require('express'),
+ app = express(),
+bodyparser = require('body-parser'),
+uuid = require('uuid'); 
+const morgan = require('morgan');
+
+app.use(bodyparser.json());
 
 fs = require('fs')
 path = require('path')
@@ -8,10 +12,9 @@ path = require('path')
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'log.txt'), {flags: 'a'})
 app.use(morgan('combined', {stream: accessLogStream}));
 
-const bodyparser = require('body-parser');
-const uuid = require('uuid');
 
-app.use(bodyparser.json());
+
+
 
 let users = [
 {
@@ -101,12 +104,12 @@ let movies = [
 },
 ];
 
-
-
 app.use(express.static('public'));
+app.use(morgan('common'));
+
 
 app.get('/', (req, res) => {
-    res.send('welcome to MyMovie app!');
+    res.send('welcome to My Movie app!');
 });
 
 app.get('/documentaion', (req, res) => {
@@ -117,27 +120,33 @@ app.get('/documentaion', (req, res) => {
 app.get('/movies', (req, res) => {
     res.json(movies);
 });
+
+
+app.get('/movies', (req, res) => {
+    res.status(200).json(movies)
+});
+
 app.get('/movies/:title', (req,res) => {
     const {title} = req.params;
-    const movie = movies.find(movie => movie.title === title)
+    const movie = movies.find(movie => movie.title === title);
     if(movie){
         res.status(200).json(movie);
     }else{
         res.status(404).send('Movie not found');
     }
 });
-app.get('/movies/:title/genre', (req,res) => {
-    const {title} = req.params;
-    const movie = movies.find( movie => movie.title === title)
+app.get('/movies/:genre', (req,res) => {
+    const {genreName} = req.params;
+    const genre = movies.find( movie => movie.genre === genreName);
     if (movie){
-        res.status(200).json(movie.genre);
+        res.status(200).json(genre);
     }else{
-        res.status(404).send('movie not found');
+        res.status(404).send('genre not found');
     }
 });
-app.get('/movies/:title/director', (req,res) => {
-    const{title}= req.params;
-    const movie = movies.find(movie => movie.title === title)
+app.get('/movies/:directorName', (req, res) => {
+    const{directorName}= req.params;
+    const director = movies.find(movie => movie.director.Name === directorName)
     if (movie){
         res.status(200).json(movie.director);
     }else{
@@ -153,7 +162,7 @@ app.post ('/users', (req,res) => {
         users.push(newUser);
         res.status(201).json(newUser);
     }else{
-        res.status(400).send('userneeds a name');
+        res.status(400).send('user needs a name');
     }
 });
 app.put('/users/:id', (req,res) => {
